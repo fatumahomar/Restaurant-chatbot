@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Fatuma's Restaurant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <style>
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #welcome-message {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #f0f0f0;
+            font-family: 'Lobster', cursive;
+        }
+        #options {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #options button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #008cba;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #chatbox {
+            width: 500px;
+            height: 500px;
+            border: 1px solid #000;
+            overflow-y: scroll;
+            padding: 20px;
+            font-size: 16px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            font-size: 16px;
+            color: black;
+        }
+        .user {
+            background-color: #98FB98;
+            text-align: right;
+        }
+        .bot {
+            background-color: #FFA07A;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #001f3f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #f0f0f0;
+        }
+        .category-options {
+            display: flex;
+            justify-content: center;
+        }
+        .category-options button {
+            margin: 5px;
+        }
+        .menu-options {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .menu-options button {
+            margin: 5px 0;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+        }
+        .menu-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            border-radius: 5px;
+        }
+        #doneButton {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="welcome-message">Welcome to Fatuma's Restaurant</div>
+        <div id="options">
+            <button onclick="showCategories()">1. Place an Order</button>
+            <button onclick="sendMessage('99')">99. Checkout Order</button>
+            <button onclick="sendMessage('98')">98. See Order History</button>
+            <button onclick="sendMessage('97')">97. See Current Order</button>
+            <button onclick="sendMessage('0')">0. Cancel Order</button>
+        </div>
+        <div id="chatbox"></div>
+        <div id="input-container">
+            <button id="doneButton" onclick="finishOrder()">Done</button>
+        </div>
+    </div>
+
+    <script>
+        const foodItems = {
+            1: { name: "Basto (Pasta)", price: 5 },
+            2: { name: "Suqaar (Stew)", price: 7.5 },
+            3: { name: "Bariis iyo Hilib (Rice and Meat)", price: 6 },
+            4: { name: "Bariis iyo Digaag (Rice and Chicken)", price: 6.5 },
+            5: { name: "Canjeero (Sour Pancake)", price: 3 },
+            6: { name: "Maraq (Soup)", price: 4 },
+            7: { name: "Oodkac (Preserved meat)", price: 8 },
+
+            8: { name: "Malawah (Sweet Pancakes)", price: 2.5 }
+        };
+
+        const drinkItems = {
+            1: { name: "Shaah (Tea)", price: 1.5 },
+            2: { name: "Qaxwo (Coffee)", price: 2 },
+            3: { name: "Biyo (Water)", price: 1 },
+            4: { name: "Casiir (Juice)", price: 2.5 },
+            5: { name: "Caano (Milk)", price: 2 }
+        };
+
+        const dessertItems = {
+            1: { name: "Halwa", price: 3 },
+            2: { name: "Honey comb", price: 4 },
+            3: { name: "Sambus", price: 2.5 },
+            4: { name: "Icun", price: 4 },
+            5: { name: "Dates", price: 2 }
+        };
+
+        let currentOrder = [];
+
+        function showCategories() {
+            let chatbox = document.getElementById('chatbox');
+            let categoriesHtml = '<div class="message bot"><span>Please select a category:</span><div class="category-options">';
+            categoriesHtml += '<button onclick="showMenuOptions(\'food\')">Food</button>';
+            categoriesHtml += '<button onclick="showMenuOptions(\'drinks\')">Drinks</button>';
+            categoriesHtml += '<button onclick="showMenuOptions(\'desserts\')">Desserts</button>';
+            categoriesHtml += '</div></div>';
+            chatbox.innerHTML += categoriesHtml;
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function showMenuOptions(category) {
+            let chatbox = document.getElementById('chatbox');
+            let items = {};
+            if (category === 'food') {
+                items = foodItems;
+            } else if (category === 'drinks') {
+                items = drinkItems;
+            } else if (category === 'desserts') {
+                items = dessertItems;
+            }
+
+            let menuHtml = `<div class="message bot"><span>Please select items to order from ${category}:</span><div class="menu-options">`;
+            for (let key in items) {
+                menuHtml += `<div class="menu-item">
+                    <button onclick="addItemToOrder('${items[key].name}', ${items[key].price})">${key}. ${items[key].name} - $${items[key].price}</button>
+                </div>`;
+            }
+            menuHtml += `</div></div>`;
+            chatbox.innerHTML += menuHtml;
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function addItemToOrder(name, price) {
+            currentOrder.push({ name, price });
+        }
+
+        function finishOrder() {
+            let chatbox = document.getElementById('chatbox');
+            let total = currentOrder.reduce((sum, item) => sum + item.price, 0);
+            let orderSummary = 'Your order:<br>';
+            currentOrder.forEach(item => {
+                orderSummary += `${item.name} - $${item.price}<br>`;
+            });
+            orderSummary += `<br>Total: $${total}`;
+            let orderHtml = `<div class="message bot"><span>${orderSummary}</span></div>`;
+            chatbox.innerHTML += orderHtml;
+            chatbox.scrollTop = chatbox.scrollHeight;
+            currentOrder = [];
+        }
+
+        function sendMessage(message = null) {
+            let userText;
+            if (message) {
+                userText = message;
+            } else {
+                userText = document.getElementById('userInput').value;
+                if (userText.trim() === "") {
+                    return;
+                }
+                document.getElementById('userInput').value = "";
+            }
+            
+            let chatbox = document.getElementById('chatbox');
+            let userHtml = `<div class="message user"><span>${userText}</span></div>`;
+            chatbox.innerHTML += userHtml;
+
+            fetch('/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let botHtml = `<div class="message bot"><span>${data.message}</span></div>`;
+                chatbox.innerHTML += botHtml;
+                chatbox.scrollTop = chatbox.scrollHeight;
+
+                if (message === '1') {
+                    showCategories();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
